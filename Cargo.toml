@@ -1,0 +1,15 @@
+[package]
+name = "spectral-fingerprint"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/SuperInstance/spectral-fingerprint"
+description = "Spectral fingerprinting for code similarity — eigenvalue decomposition of AST adjacency matrices"
+keywords = ["fingerprint", "similarity", "eigenvalue", "ast", "code-analysis"]
+categories = ["algorithms", "development-tools"]
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+thiserror = "1"
+
+[dev-dependencies]
