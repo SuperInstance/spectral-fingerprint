@@ -1,11 +1,49 @@
 //! # spectral-fingerprint
 //!
-//! Spectral fingerprinting for code similarity detection.
+//! **Spectral fingerprinting for code similarity — eigenvalue decomposition of AST adjacency matrices.**
 //!
-//! This crate uses eigenvalue decomposition to create compact, fixed-length
-//! "fingerprints" of code structure. A function's AST becomes an adjacency
-//! matrix; the eigenvalues of this matrix form a fingerprint that is invariant
-//! to node ordering and captures structural topology.
+//! This crate converts code structure into compact, fixed-length "fingerprints" using
+//! eigenvalue decomposition. A function's AST becomes an adjacency matrix; the eigenvalues
+//! form a 64-dimensional vector that captures structural topology and is invariant to node
+//! ordering. Two functions with similar structure produce similar fingerprints regardless
+//! of variable names or literal values.
+//!
+//! ## The Key Insight
+//!
+//! An adjacency matrix `A` of a graph `G` encodes all connectivity information. Its
+//! eigenvalue decomposition `A = QΛQᵀ` reveals fundamental structural properties:
+//! the largest eigenvalue correlates with graph density, the eigenvalue spectrum determines
+//! path counts between nodes, and the spectral gap relates to connectivity robustness.
+//! Because AST topology changes smoothly with structural edits, eigenvalue fingerprints
+//! are **stable under small changes** while remaining **discriminative** between different
+//! structures.
+//!
+//! ## Architecture
+//!
+//! ```text
+//! ┌─────────────────────────────────────────────────────────────┐
+//! │                      Source Code (AST)                       │
+//! └────────────────────────┬────────────────────────────────────┘
+//!                          │
+//!                     ┌────▼────┐
+//!                     │CodeGraph│  ast_matrix.rs — adjacency matrix + node metadata
+//!                     └────┬────┘
+//!                          │ eigenvalue decomposition (power iteration + deflation)
+//!                     ┌────▼─────────────┐
+//!                     │SpectralFingerprint│  fingerprint.rs — 64-dim L2-normalized vector
+//!                     └────┬─────────────┘
+//!                          │
+//!               ┌──────────┼──────────┐
+//!               │          │          │
+//!         ┌─────▼────┐ ┌──▼───┐ ┌───▼──────┐
+//!         │Similarity│ │LSH   │ │StructDiff│
+//!         │  Index   │ │Hash  │ │          │
+//!         └─────┬────┘ └──┬───┘ └──────────┘
+//!               │         │
+//!         ┌─────▼─────────▼──────┐
+//!         │   BatchProcessor     │  batch.rs — directory-level duplicate detection
+//!         └──────────────────────┘
+//! ```
 //!
 //! # Quick Start
 //!
